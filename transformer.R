@@ -1,0 +1,3 @@
+require(methods)
+library(rsyncrosim)
+

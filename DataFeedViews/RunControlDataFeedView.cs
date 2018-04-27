@@ -1,6 +1,5 @@
-﻿
+﻿using SyncroSim.Core;
 using SyncroSim.Core.Forms;
-using System.Windows.Forms;
 
 namespace SyncroSim.STSimPRMS
 {
@@ -9,6 +8,17 @@ namespace SyncroSim.STSimPRMS
         public RunControlDataFeedView()
         {
             InitializeComponent();
+        }
+
+        public override void LoadDataFeed(DataFeed dataFeed)
+        {
+            base.LoadDataFeed(dataFeed);
+
+            this.SetTextBoxBinding(this.TextBoxStartTimestep, "MinimumTimestep");
+            this.SetTextBoxBinding(this.TextBoxEndTimestep, "MaximumTimestep");
+            this.SetTextBoxBinding(this.TextBoxTotalIterations, "MaximumIteration");
+
+            this.AddStandardCommands();
         }
     }
 }

@@ -80,11 +80,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assembly.cs" />
+    <Compile Include="DataFeedViews\ClimateInputDataFeedView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataFeedViews\ClimateInputDataFeedView.Designer.cs">
+      <DependentUpon>ClimateInputDataFeedView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataFeedViews\PRMSInputDataFeedView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataFeedViews\PRMSInputDataFeedView.Designer.cs">
+      <DependentUpon>PRMSInputDataFeedView.cs</DependentUpon>
+    </Compile>
     <Compile Include="DataFeedViews\RunControlDataFeedView.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="DataFeedViews\RunControlDataFeedView.Designer.cs">
       <DependentUpon>RunControlDataFeedView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataFeedViews\STSimScenarioDataFeedView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataFeedViews\STSimScenarioDataFeedView.Designer.cs">
+      <DependentUpon>STSimScenarioDataFeedView.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -99,6 +117,18 @@
       <Project>{ea3a4b6e-d4db-466d-b510-6a38918f2dd8}</Project>
       <Name>SyncroSim.Core.Forms</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Core\SyncroSim.Core.csproj">
+      <Project>{af51a2a0-349a-4a3c-bec2-906e605db6d7}</Project>
+      <Name>SyncroSim.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DataFeedViews\RunControlDataFeedView.resx">
+      <DependentUpon>RunControlDataFeedView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataFeedViews\STSimScenarioDataFeedView.resx">
+      <DependentUpon>STSimScenarioDataFeedView.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

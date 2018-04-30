@@ -36,7 +36,9 @@ namespace SyncroSim.STSimPRMS
         private void ButtonChoose_Click(object sender, System.EventArgs e)
         {
             OpenFileDialog d = new OpenFileDialog();
+
             d.Title = "Choose ST-Sim Library";
+            d.Filter = "ST-Sim Library (*.ssim)|*.ssim";
 
             if (d.ShowDialog() == DialogResult.OK)
             {

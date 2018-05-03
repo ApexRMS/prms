@@ -107,6 +107,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LT.control" />
+    <None Include="martis.control" />
     <None Include="module.config">
       <SubType>Designer</SubType>
     </None>
@@ -129,6 +131,9 @@
     <EmbeddedResource Include="DataFeedViews\STSimScenarioDataFeedView.resx">
       <DependentUpon>STSimScenarioDataFeedView.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="gsflow_nws.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

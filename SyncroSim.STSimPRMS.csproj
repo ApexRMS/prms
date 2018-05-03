@@ -107,8 +107,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="LT.control" />
-    <None Include="martis.control" />
     <None Include="module.config">
       <SubType>Designer</SubType>
     </None>

@@ -24,7 +24,7 @@ GetFile <- function(ds, name){
   return(f)
 }
 
-ProcessTemplate = function(templateFile, outputFile) {
+ProcessTemplateControlFile = function(templateFile, outputFile) {
   
   f1 = file(templateFile, "r")
   f2 = file(outputFile, "w")
@@ -33,7 +33,7 @@ ProcessTemplate = function(templateFile, outputFile) {
     
     line = readLines(f1, n = 1)
     
-    if ( length(line) == 0 ) {
+    if (length(line) == 0 ) {
       break
     }
     

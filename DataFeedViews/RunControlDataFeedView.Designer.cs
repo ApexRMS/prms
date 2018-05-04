@@ -51,7 +51,7 @@
             this.LabelMaxTimestep.Location = new System.Drawing.Point(13, 43);
             this.LabelMaxTimestep.Name = "LabelMaxTimestep";
             this.LabelMaxTimestep.Size = new System.Drawing.Size(96, 13);
-            this.LabelMaxTimestep.TabIndex = 1;
+            this.LabelMaxTimestep.TabIndex = 2;
             this.LabelMaxTimestep.Text = "Maximum timestep:";
             // 
             // LabelTotalIterations
@@ -60,7 +60,7 @@
             this.LabelTotalIterations.Location = new System.Drawing.Point(13, 69);
             this.LabelTotalIterations.Name = "LabelTotalIterations";
             this.LabelTotalIterations.Size = new System.Drawing.Size(77, 13);
-            this.LabelTotalIterations.TabIndex = 2;
+            this.LabelTotalIterations.TabIndex = 4;
             this.LabelTotalIterations.Text = "Total Iterations";
             // 
             // TextBoxStartTimestep
@@ -68,14 +68,14 @@
             this.TextBoxStartTimestep.Location = new System.Drawing.Point(128, 12);
             this.TextBoxStartTimestep.Name = "TextBoxStartTimestep";
             this.TextBoxStartTimestep.Size = new System.Drawing.Size(100, 20);
-            this.TextBoxStartTimestep.TabIndex = 3;
+            this.TextBoxStartTimestep.TabIndex = 1;
             // 
             // TextBoxEndTimestep
             // 
             this.TextBoxEndTimestep.Location = new System.Drawing.Point(128, 38);
             this.TextBoxEndTimestep.Name = "TextBoxEndTimestep";
             this.TextBoxEndTimestep.Size = new System.Drawing.Size(100, 20);
-            this.TextBoxEndTimestep.TabIndex = 4;
+            this.TextBoxEndTimestep.TabIndex = 3;
             // 
             // TextBoxTotalIterations
             // 

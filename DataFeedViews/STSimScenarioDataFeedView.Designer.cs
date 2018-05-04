@@ -34,6 +34,8 @@
             this.ButtonClear = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.TextBoxResultScenarioID = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.TextBoxStateAttributeName = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // label1
@@ -79,7 +81,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(16, 78);
+            this.label2.Location = new System.Drawing.Point(13, 78);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(97, 13);
             this.label2.TabIndex = 4;
@@ -87,15 +89,33 @@
             // 
             // TextBoxResultScenarioID
             // 
-            this.TextBoxResultScenarioID.Location = new System.Drawing.Point(119, 75);
+            this.TextBoxResultScenarioID.Location = new System.Drawing.Point(127, 74);
             this.TextBoxResultScenarioID.Name = "TextBoxResultScenarioID";
-            this.TextBoxResultScenarioID.Size = new System.Drawing.Size(79, 20);
+            this.TextBoxResultScenarioID.Size = new System.Drawing.Size(199, 20);
             this.TextBoxResultScenarioID.TabIndex = 5;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(13, 102);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(105, 13);
+            this.label3.TabIndex = 6;
+            this.label3.Text = "State attribute name:";
+            // 
+            // TextBoxStateAttributeName
+            // 
+            this.TextBoxStateAttributeName.Location = new System.Drawing.Point(127, 100);
+            this.TextBoxStateAttributeName.Name = "TextBoxStateAttributeName";
+            this.TextBoxStateAttributeName.Size = new System.Drawing.Size(199, 20);
+            this.TextBoxStateAttributeName.TabIndex = 7;
             // 
             // STSimScenarioDataFeedView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.TextBoxStateAttributeName);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.TextBoxResultScenarioID);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.ButtonClear);
@@ -117,5 +137,7 @@
         private System.Windows.Forms.Button ButtonClear;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox TextBoxResultScenarioID;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox TextBoxStateAttributeName;
     }
 }

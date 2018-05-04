@@ -24,6 +24,7 @@ namespace SyncroSim.STSimPRMS
 
             this.SetTextBoxBinding(this.TextBoxLibraryFile, "STSimLibraryFile");
             this.SetTextBoxBinding(this.TextBoxResultScenarioID, "ResultScenarioID");
+            this.SetTextBoxBinding(this.TextBoxStateAttributeName, "StateAttributeName");
 
             this.AddStandardCommands();
         }

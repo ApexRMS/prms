@@ -80,18 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assembly.cs" />
-    <Compile Include="DataFeedViews\ClimateInputDataFeedView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="DataFeedViews\ClimateInputDataFeedView.Designer.cs">
-      <DependentUpon>ClimateInputDataFeedView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="DataFeedViews\PRMSInputDataFeedView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="DataFeedViews\PRMSInputDataFeedView.Designer.cs">
-      <DependentUpon>PRMSInputDataFeedView.cs</DependentUpon>
-    </Compile>
     <Compile Include="DataFeedViews\RunControlDataFeedView.cs">
       <SubType>UserControl</SubType>
     </Compile>

@@ -97,7 +97,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(13, 102);
+            this.label3.Location = new System.Drawing.Point(13, 106);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(105, 13);
             this.label3.TabIndex = 6;
@@ -105,7 +105,7 @@
             // 
             // TextBoxStateAttributeName
             // 
-            this.TextBoxStateAttributeName.Location = new System.Drawing.Point(127, 100);
+            this.TextBoxStateAttributeName.Location = new System.Drawing.Point(127, 104);
             this.TextBoxStateAttributeName.Name = "TextBoxStateAttributeName";
             this.TextBoxStateAttributeName.Size = new System.Drawing.Size(199, 20);
             this.TextBoxStateAttributeName.TabIndex = 7;

@@ -44,18 +44,21 @@ ProcessTemplateControlFile = function(templateFile, outputFile) {
   close(f2)
 }
 
+# Globals
+
 Scen = scenario()
-Env = ssimEnvironment()
 RunControl = GetDataSheet("PRMS_RunControl", Scen)
 STSimInput = GetDataSheet("PRMS_InputSTSimScenario", Scen)
-
+ClimateInput = GetDataSheet("PRMS_ClimateInput", Scen)
+PRMSInput = GetDataSheet("PRMS_PRMSInput", Scen)
 MaxIteration = GetSingleValue(RunControl, "MaximumIteration")
 MinIteration = GetSingleValue(RunControl, "MinimumIteration")
 MinTimestep = GetSingleValue(RunControl, "MinimumTimestep")
 MaxTimestep = GetSingleValue(RunControl, "MaximumTimestep")
-
 LibraryFile = GetFile(STSimInput, "STSimLibraryFile")
 ResultScenarioID = GetSingleValue(STSimInput,"ResultScenarioID")
+StateAttributeName = GetSingleValue(STSimInput,"StateAttributeName")
+
 
 for (Iteration in MinIteration:MaxIteration) {
   

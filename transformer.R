@@ -7,7 +7,7 @@ library(rsyncrosim)
 
 GetDataSheet <- function(name, scen) {
     ds = datasheet(scen, name)
-    if (NROW(ds) == 0) { stop(paste0("No data for: ", name)) }
+    if (nrow(ds) == 0) { stop(paste0("No data for: ", name)) }
     return(ds)
 }
 
@@ -100,6 +100,8 @@ MaxTimestep = GetSingleValue(RunControl, "MaximumTimestep")
 LibraryFile = GetFile(STSimInput, "STSimLibraryFile")
 ResultScenarioID = GetSingleValue(STSimInput, "ResultScenarioID")
 StateAttributeName = GetSingleValue(STSimInput, "StateAttributeName")
+
+# Basin, Iteration, Timestep loop
 
 for (i in 1:nrow(PRMSBasin)) {
 

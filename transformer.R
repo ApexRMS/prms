@@ -166,23 +166,19 @@ inputFolder = ssimInputFolder(scen, "PRMS_PRMSInput")
 for (basinRowIndex in 1:nrow(basinSheet)) {
 
     basinName = basinSheet[basinRowIndex, "Name"]
+    basinCRS = paste0("\"", basinSheet[basinRowIndex, "CRS"], "\"")
+
     inputRow = GetRowByBasin(inputSheet, basinName)
 
     if (is.null(inputRow)) {
         next
     }
 
-    boundaryShapeFile = GetSingleValue(inputRow, "BoundaryShapeFile")
     templateControlFile = GetSingleValue(inputRow, "TemplateControlFile")
     templateParameterFile = GetSingleValue(inputRow, "TemplateParameterFile")
     initialHRUValueFile = GetSingleValue(inputRow, "InitialHRUValueFile")
     centroidHRUFile = GetSingleValue(inputRow, "HRUCentroidFile")
     attributePRMSLookupFile = GetSingleValue(inputRow, "AttributePRMSLookupFile")
-
-    layerName = gsub(pattern = "\\.shp", "", basename(boundaryShapeFile))
-    basinShp <- readOGR(dsn = inputFolder, layer = layerName)
-    basinCRS <- crs(basinShp)
-
     basinPt <- read.table(centroidHRUFile, header = T)
     vegtype_prms <- read.csv(file = attributePRMSLookupFile)
     basin_prms_orig <- read.csv(file = initialHRUValueFile)

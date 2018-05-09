@@ -92,7 +92,6 @@
     <Compile Include="DataFeedViews\STSimScenarioDataFeedView.Designer.cs">
       <DependentUpon>STSimScenarioDataFeedView.cs</DependentUpon>
     </Compile>
-    <Compile Include="DataSheets\PRMSInputDataSheet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -25,6 +25,7 @@ namespace SyncroSim.STSimPRMS
                 this.AddRelatedFile(fileName, ".prj", dr, "BoundaryShapeFilePRJ");
                 this.AddRelatedFile(fileName, ".sbn", dr, "BoundaryShapeFileSBN");
                 this.AddRelatedFile(fileName, ".sbx", dr, "BoundaryShapeFileSBX");
+                this.AddRelatedFile(fileName, ".shx", dr, "BoundaryShapeFileSHX");
 
                 this.Changes.Add(new ChangeRecord(this, "Added related shape files"));       
             }
@@ -35,11 +36,13 @@ namespace SyncroSim.STSimPRMS
             string BaseName = Path.GetFileNameWithoutExtension(fileName) + extension;
             string Fullname = Path.Combine(Path.GetDirectoryName(fileName), BaseName);
 
-            if (File.Exists(Fullname))
+            if (!File.Exists(Fullname))
             {
-                dr[columnName] = BaseName;
-                base.AddExternalInputFile(Fullname, dr, columnName);
+                throw new InvalidDataException("Cannot find associated shape file: " + Fullname);
             }
+
+            dr[columnName] = BaseName;
+            base.AddExternalInputFile(Fullname, dr, columnName);
         }
     }
 }

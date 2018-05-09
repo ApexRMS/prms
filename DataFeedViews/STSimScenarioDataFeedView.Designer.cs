@@ -53,6 +53,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.TextBoxLibraryFile.Location = new System.Drawing.Point(16, 42);
             this.TextBoxLibraryFile.Name = "TextBoxLibraryFile";
+            this.TextBoxLibraryFile.ReadOnly = true;
             this.TextBoxLibraryFile.Size = new System.Drawing.Size(452, 20);
             this.TextBoxLibraryFile.TabIndex = 1;
             // 

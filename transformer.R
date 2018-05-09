@@ -24,6 +24,15 @@ GetFile <- function(ds, name) {
     return(f)
 }
 
+CreateRuntimeFileName <- function(scen, prefix, basinName, iteration, timestep, extension) {
+
+    outputFolder = ssimTempFolder(scen, "PRMS")
+    outputFile = paste0(prefix, ".", basinName, ".it", iteration, ".ts", timestep, ".", extension)
+    outputFile = file.path(outputFolder, outputFile)
+
+    return(outputFile)
+}
+
 GetRowByBasin <- function(df, basinName) {
 
     r = subset(df, BasinID == basinName)
@@ -126,7 +135,11 @@ GetNHRUValue <- function(templateParameterFile) {
     return(value)
 }
 
-ProcessTemplateControlFile = function(templateControlFile, outputFile) {
+CreateControlFile = function(
+    scen, templateControlFile, basinName, iteration, timestep,
+    climateFile, paramFile) {
+
+    outputFile = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "control")
 
     f1 = file(templateControlFile, "r")
     f2 = file(outputFile, "w")
@@ -139,11 +152,59 @@ ProcessTemplateControlFile = function(templateControlFile, outputFile) {
             break
         }
 
+        if (line == "STSimPRMS_StartTimestep") {
+            line = as.character(timestep - 1)
+        } else if (line == "STSimPRMS_EndTimestep") {
+            line = as.character(timestep)
+        } else if (line == "STSimPRMS_InputClimateFile") {
+            line = climateFile
+        } else if (line == "STSimPRMS_InputParameterFile") {
+            line = paramFile
+        } else if (line == "STSimPRMS_GSFLOWOutputFile") {
+            line = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "out")
+        } else if (line == "STSimPRMS_ModelOutputFile") {
+            line = CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out")
+        } else if (line == "STSimPRMS_CSVOutputFile") {
+            line = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "csv")
+        } else if (line == "STSimPRMS_StatVarFile") {
+            line = CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat")
+        } else if (line == "STSimPRMS_AniOutputFile") {
+            line = CreateRuntimeFileName(scen, "animation", basinName, iteration, timestep, "out")
+        } else if (line == "STSimPRMS_VarSaveFile") {
+            line = CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out")
+        }
+
         writeLines(line, f2)
     }
 
     close(f1)
     close(f2)
+
+    return(outputFile)
+}
+
+CreateParamFile = function(
+    scen, templateParameterFile, basinName, iteration, timestep) {
+
+    outputFile = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "param")
+
+    f1 = file(templateParameterFile, "r")
+    f2 = file(outputFile, "w")
+
+    # Placeholder for now
+
+    while (TRUE) {
+
+        line = readLines(f1, n = 1)
+        writeLines(line, f2)
+
+        break 
+    }
+
+    close(f1)
+    close(f2)
+
+    return(outputFile)
 }
 
 # Globals
@@ -166,7 +227,7 @@ inputFolder = ssimInputFolder(scen, "PRMS_PRMSInput")
 for (basinRowIndex in 1:nrow(basinSheet)) {
 
     basinName = basinSheet[basinRowIndex, "Name"]
-    basinCRS = paste0("\"", basinSheet[basinRowIndex, "CRS"], "\"")
+    basinCRS = basinSheet[basinRowIndex, "CRS"]
 
     inputRow = GetRowByBasin(inputSheet, basinName)
 
@@ -274,7 +335,8 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
                 }
             }
 
-
+            paramFile = CreateParamFile(scen, templateParameterFile, basinName, iteration, timestep)
+            controlFile = CreateControlFile(scen, templateControlFile, basinName, iteration, timestep, climateFile, paramFile)
         }
     }
 }

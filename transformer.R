@@ -7,21 +7,36 @@ library(rsyncrosim)
 library(RSQLite)
 
 GetDataSheet <- function(name, scen) {
+
     ds = datasheet(scen, name)
     if (nrow(ds) == 0) { stop(paste0("No data for: ", name)) }
     return(ds)
 }
 
 GetSingleValue <- function(ds, name) {
+
     v = ds[, name]
     if (is.na(v)) { stop(paste0("Missing data for: ", name)) }
     return(v)
 }
 
 GetFile <- function(ds, name) {
+
     f = GetSingleValue(ds, name)
     if (!file.exists(f)) { stop(paste0("The file does not exist: ", f)) }
     return(f)
+}
+
+Enquote <- function(value) {
+    return (paste0('\"', value, '\"'))
+}
+
+WinFile <- function(fileName) {
+    return(gsub("/", "\\", fileName, fixed = T))
+}
+
+UnixFile <- function(fileName) {
+    return(gsub("\\", "/",  fileName, fixed = T))
 }
 
 CreateRuntimeFileName <- function(scen, prefix, basinName, iteration, timestep, extension) {
@@ -107,6 +122,16 @@ GetStateAttributeRasterName <- function(stsimInputSheet, iteration, timestep) {
     return(fileName)
 }
 
+GetVeg30Prj <- function(stsimInputSheet, iteration, timestep) {
+
+    attributeRaster = GetStateAttributeRasterName(stsimInputSheet, iteration, timestep)
+
+    Veg30 <- raster(attributeRaster)
+    Veg30prj <- projectRaster(Veg30, res = 30, crs = basinCRS, method = 'ngb')
+
+    return(Veg30prj)
+}
+
 GetNHRUValue <- function(templateParameterFile) {
 
     value = NA
@@ -142,7 +167,7 @@ CreateControlFile = function(
     outputFile = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "control")
 
     f1 = file(templateControlFile, "r")
-    f2 = file(outputFile, "w")
+    f2 = file(outputFile, "wb")
 
     while (TRUE) {
 
@@ -159,19 +184,19 @@ CreateControlFile = function(
         } else if (line == "STSimPRMS_InputClimateFile") {
             line = climateFile
         } else if (line == "STSimPRMS_InputParameterFile") {
-            line = paramFile
+            line = WinFile(paramFile)
         } else if (line == "STSimPRMS_GSFLOWOutputFile") {
-            line = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "out")
+            line = WinFile(CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "out"))
         } else if (line == "STSimPRMS_ModelOutputFile") {
-            line = CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out")
+            line = WinFile(CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out"))
         } else if (line == "STSimPRMS_CSVOutputFile") {
-            line = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "csv")
+            line = WinFile(CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "csv"))
         } else if (line == "STSimPRMS_StatVarFile") {
-            line = CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat")
+            line = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
         } else if (line == "STSimPRMS_AniOutputFile") {
-            line = CreateRuntimeFileName(scen, "animation", basinName, iteration, timestep, "out")
+            line = WinFile(CreateRuntimeFileName(scen, "animation", basinName, iteration, timestep, "out"))
         } else if (line == "STSimPRMS_VarSaveFile") {
-            line = CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out")
+            line = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out"))
         }
 
         writeLines(line, f2)
@@ -183,28 +208,61 @@ CreateControlFile = function(
     return(outputFile)
 }
 
+WriteParamData <- function(values, nhru, f1, f2) {
+
+    # Header lines
+    writeLines(readLines(f1, n = 1), f2)
+    writeLines(readLines(f1, n = 1), f2)
+    writeLines(readLines(f1, n = 1), f2)
+    writeLines(readLines(f1, n = 1), f2)
+
+    # Data
+    for (i in 1:nhru) {
+        readLines(f1, n = 1)
+        writeLines(as.character(values[i]), f2)
+    }
+}
+
 CreateParamFile = function(
-    scen, templateParameterFile, basinName, iteration, timestep) {
+    scen, templateParameterFile, basinName, iteration, timestep, nhru,
+    cov_type_basin) {
 
     outputFile = CreateRuntimeFileName(scen, "gsflow", basinName, iteration, timestep, "param")
 
     f1 = file(templateParameterFile, "r")
-    f2 = file(outputFile, "w")
-
-    # Placeholder for now
+    f2 = file(outputFile, "wb")
 
     while (TRUE) {
 
         line = readLines(f1, n = 1)
-        writeLines(line, f2)
 
-        break 
+        if (length(line) == 0) {
+            break
+        }
+
+        if (line == "cov_type 0") {
+
+            writeLines(line, f2)
+            WriteParamData(cov_type_basin, nhru, f1, f2)
+
+        } else {
+            writeLines(line, f2)
+        }
     }
 
     close(f1)
     close(f2)
 
     return(outputFile)
+}
+
+Call_gsflow_nws <- function(controlFile) {
+
+    e = ssimEnvironment()
+    exe = Enquote(UnixFile(file.path(e$ModuleDirectory, "gsflow_nws.exe")))
+    cmd = paste(c(exe, Enquote(WinFile(controlFile))), collapse = " ")
+
+    system(cmd, intern = T)
 }
 
 # Globals
@@ -223,6 +281,10 @@ maxTimestep = GetSingleValue(runControlSheet, "MaximumTimestep")
 inputFolder = ssimInputFolder(scen, "PRMS_PRMSInput")
 
 # Basin, Iteration, Timestep loop
+
+totalIterations = (maxIteration - minIteration + 1)
+totalTimesteps = (maxTimestep - minTimestep + 1)
+beginSimulation(totalIterations * totalTimesteps)
 
 for (basinRowIndex in 1:nrow(basinSheet)) {
 
@@ -257,23 +319,23 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
 
         for (timestep in minTimestep:maxTimestep) {
 
-            attributeRaster = GetStateAttributeRasterName(stsimInputSheet, iteration, timestep)
+            reportProgress(iteration, timestep)
+            stepSimulation()
 
-            Veg30 <- raster(attributeRaster)
-            Veg30prj <- projectRaster(Veg30, res = 30, crs = basinCRS, method = 'ngb')
+            Veg30prj = GetVeg30Prj(stsimInputSheet, iteration, timestep)
 
             # Create cov_type, covden_sum, covden_win, rad_trnscf, snow_intcp, 
             # srain_intcp, and wrain_intcp rasters using subs function
 
             cov_type <- subs(Veg30prj, vegtype_prms, by = 1, which = 2)
-            covden_sum <- subs(Veg30prj, vegtype_prms, by = 1, which = 3)
-            covden_win <- subs(Veg30prj, vegtype_prms, by = 1, which = 4)
-            radtrnscf <- subs(Veg30prj, vegtype_prms, by = 1, which = 5)
-            snow_intcp <- subs(Veg30prj, vegtype_prms, by = 1, which = 6)
-            msrain_intcp <- subs(Veg30prj, vegtype_prms, by = 1, which = 7)
-            mwrain_intcp <- subs(Veg30prj, vegtype_prms, by = 1, which = 8)
-            ltsrain_intcp <- subs(Veg30prj, ltvegtype_prms, by = 1, which = 7)
-            ltwrain_intcp <- subs(Veg30prj, ltvegtype_prms, by = 1, which = 8)
+            #covden_sum <- subs(Veg30prj, vegtype_prms, by = 1, which = 3)
+            #covden_win <- subs(Veg30prj, vegtype_prms, by = 1, which = 4)
+            #radtrnscf <- subs(Veg30prj, vegtype_prms, by = 1, which = 5)
+            #snow_intcp <- subs(Veg30prj, vegtype_prms, by = 1, which = 6)
+            #msrain_intcp <- subs(Veg30prj, vegtype_prms, by = 1, which = 7)
+            #mwrain_intcp <- subs(Veg30prj, vegtype_prms, by = 1, which = 8)
+            #ltsrain_intcp <- subs(Veg30prj, ltvegtype_prms, by = 1, which = 7)
+            #ltwrain_intcp <- subs(Veg30prj, ltvegtype_prms, by = 1, which = 8)
 
             # Aggregation for cov_type using mode to aggregate to 300 m
 
@@ -281,62 +343,71 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
             
             # Aggregation for covden_sum, covden_win, radtrnscf, snow_intcp, srain_intcp, wrain_intcp using mean
             
-            covden_sum300 <- aggregate(covden_sum, fact = 10, fun = 'mean')
-            covden_win300 <- aggregate(covden_win, fact = 10, fun = 'mean')
-            radtrnscf300 <- aggregate(radtrnscf, fact = 10, fun = 'mean')
-            snow_intcp300 <- aggregate(snow_intcp, fact = 10, fun = 'mean')
-            msrain_intcp300 <- aggregate(msrain_intcp, fact = 10, fun = 'mean')
-            mwrain_intcp300 <- aggregate(mwrain_intcp, fact = 10, fun = 'mean')
-            ltsrain_intcp300 <- aggregate(ltsrain_intcp, fact = 10, fun = 'mean')
-            ltwrain_intcp300 <- aggregate(ltwrain_intcp, fact = 10, fun = 'mean')
+            #covden_sum300 <- aggregate(covden_sum, fact = 10, fun = 'mean')
+            #covden_win300 <- aggregate(covden_win, fact = 10, fun = 'mean')
+            #radtrnscf300 <- aggregate(radtrnscf, fact = 10, fun = 'mean')
+            #snow_intcp300 <- aggregate(snow_intcp, fact = 10, fun = 'mean')
+            #msrain_intcp300 <- aggregate(msrain_intcp, fact = 10, fun = 'mean')
+            #mwrain_intcp300 <- aggregate(mwrain_intcp, fact = 10, fun = 'mean')
+            #ltsrain_intcp300 <- aggregate(ltsrain_intcp, fact = 10, fun = 'mean')
+            #ltwrain_intcp300 <- aggregate(ltwrain_intcp, fact = 10, fun = 'mean')
             
             # Extract the values in the raster layers to a dataframe
 
             cov_type_extract <- extract(cov_type300, basinPt, method = 'simple', cellnumbers = T, df = T)
-            covden_sum_extract <- extract(covden_sum300, basinPt, method = 'simple', cellnumbers = T, df = T)
-            covden_win_extract <- extract(covden_win300, basinPt, method = 'simple', cellnumbers = T, df = T)
-            radtrnscf_extract <- extract(radtrnscf300, basinPt, method = 'simple', cellnumbers = T, df = T)
-            snow_intcp_extract <- extract(snow_intcp300, basinPt, method = 'simple', cellnumbers = T, df = T)
-            msrain_intcp_extract <- extract(msrain_intcp300, basinPt, method = 'simple', cellnumbers = T, df = T)
-            mwrain_intcp_extract <- extract(mwrain_intcp300, basinPt, method = 'simple', cellnumbers = T, df = T)
+            #covden_sum_extract <- extract(covden_sum300, basinPt, method = 'simple', cellnumbers = T, df = T)
+            #covden_win_extract <- extract(covden_win300, basinPt, method = 'simple', cellnumbers = T, df = T)
+            #radtrnscf_extract <- extract(radtrnscf300, basinPt, method = 'simple', cellnumbers = T, df = T)
+            #snow_intcp_extract <- extract(snow_intcp300, basinPt, method = 'simple', cellnumbers = T, df = T)
+            #msrain_intcp_extract <- extract(msrain_intcp300, basinPt, method = 'simple', cellnumbers = T, df = T)
+            #mwrain_intcp_extract <- extract(mwrain_intcp300, basinPt, method = 'simple', cellnumbers = T, df = T)
 
             # Create placeholder matrices for parameter
             
             cov_type_basin <- rep(0, nHRU)
-            covden_sum_basin <- rep(0, nHRU)
-            covden_win_basin <- rep(0, nHRU)
-            radtrnscf_basin <- rep(0, nHRU)
-            snow_intcp_basin <- rep(0, nHRU)
-            srain_intcp_basin <- rep(0, nHRU)
-            wrain_intcp_basin <- rep(0, nHRU)
+            #covden_sum_basin <- rep(0, nHRU)
+            #covden_win_basin <- rep(0, nHRU)
+            #radtrnscf_basin <- rep(0, nHRU)
+            #snow_intcp_basin <- rep(0, nHRU)
+            #srain_intcp_basin <- rep(0, nHRU)
+            #wrain_intcp_basin <- rep(0, nHRU)
 
             # Replace values in the matrices with original PRMS values
             
             for (i in 1:nHRU) { cov_type_basin[i] <- basin_prms_orig[i, 4] }
-            for (i in 1:nHRU) { covden_sum_basin[i] <- basin_prms_orig[i, 5] }
-            for (i in 1:nHRU) { covden_win_basin[i] <- basin_prms_orig[i, 6] }
-            for (i in 1:nHRU) { radtrnscf_basin[i] <- basin_prms_orig[i, 7] }
-            for (i in 1:nHRU) { snow_intcp_basin[i] <- basin_prms_orig[i, 8] }
-            for (i in 1:nHRU) { srain_intcp_basin[i] <- basin_prms_orig[i, 9] }
-            for (i in 1:nHRU) { wrain_intcp_basin[i] <- basin_prms_orig[i, 10] }
+            #for (i in 1:nHRU) { covden_sum_basin[i] <- basin_prms_orig[i, 5] }
+            #for (i in 1:nHRU) { covden_win_basin[i] <- basin_prms_orig[i, 6] }
+            #for (i in 1:nHRU) { radtrnscf_basin[i] <- basin_prms_orig[i, 7] }
+            #for (i in 1:nHRU) { snow_intcp_basin[i] <- basin_prms_orig[i, 8] }
+            #for (i in 1:nHRU) { srain_intcp_basin[i] <- basin_prms_orig[i, 9] }
+            #for (i in 1:nHRU) { wrain_intcp_basin[i] <- basin_prms_orig[i, 10] }
 
-            # Replace values with LCF extracted values if code in column 1 of martis_prms_orig is 1
+            # Replace values with LCF extracted values if code in column 1 of [?orig] is 1
             # Dynamic based on ST_Sim
 
             for (i in 1:nHRU) {
                 if (basin_prms_orig[i, 1] == 1) {
                     cov_type_basin[i] <- cov_type_extract[i, 3]
-                    covden_sum_basin[i] <- covden_sum_extract[i, 3]
-                    covden_win_basin[i] <- covden_win_extract[i, 3]
-                    radtrnscf_basin[i] <- radtrnscf_extract[i, 3]
-                    snow_intcp_basin[i] <- snow_intcp_extract[i, 3]
-                    srain_intcp_basin[i] <- msrain_intcp_extract[i, 3]
-                    wrain_intcp_basin[i] <- mwrain_intcp_extract[i, 3]
+                    #covden_sum_basin[i] <- covden_sum_extract[i, 3]
+                    #covden_win_basin[i] <- covden_win_extract[i, 3]
+                    #radtrnscf_basin[i] <- radtrnscf_extract[i, 3]
+                    #snow_intcp_basin[i] <- snow_intcp_extract[i, 3]
+                    #srain_intcp_basin[i] <- msrain_intcp_extract[i, 3]
+                    #wrain_intcp_basin[i] <- mwrain_intcp_extract[i, 3]
                 }
             }
 
-            paramFile = CreateParamFile(scen, templateParameterFile, basinName, iteration, timestep)
-            controlFile = CreateControlFile(scen, templateControlFile, basinName, iteration, timestep, climateFile, paramFile)
+            paramFile = CreateParamFile(
+                scen, templateParameterFile, basinName, iteration, timestep, nHRU,
+                cov_type_basin)
+
+            controlFile = CreateControlFile(
+                scen, templateControlFile, basinName, iteration, timestep,
+                climateFile, paramFile)
+
+            Call_gsflow_nws(controlFile)
         }
     }
 }
+
+endSimulation()

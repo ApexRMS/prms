@@ -178,9 +178,9 @@ CreateControlFile = function(
         }
 
         if (line == "STSimPRMS_StartTimestep") {
-            line = as.character(timestep - 1)
+            line = as.character(timestep - 1 + 1986)
         } else if (line == "STSimPRMS_EndTimestep") {
-            line = as.character(timestep)
+            line = as.character(timestep + 1986)
         } else if (line == "STSimPRMS_InputClimateFile") {
             line = climateFile
         } else if (line == "STSimPRMS_InputParameterFile") {
@@ -274,6 +274,7 @@ runControlSheet = GetDataSheet("PRMS_RunControl", scen)
 stsimInputSheet = GetDataSheet("PRMS_InputSTSimScenario", scen)
 climateInputSheet = GetDataSheet("PRMS_ClimateInput", scen)
 inputSheet = GetDataSheet("PRMS_PRMSInput", scen)
+outputSheet = datasheet(scen, name = "PRMS_OutputFiles")
 maxIteration = GetSingleValue(runControlSheet, "MaximumIteration")
 minIteration = GetSingleValue(runControlSheet, "MinimumIteration")
 minTimestep = GetSingleValue(runControlSheet, "MinimumTimestep")
@@ -320,8 +321,6 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
         for (timestep in minTimestep:maxTimestep) {
 
             reportProgress(iteration, timestep)
-            stepSimulation()
-
             Veg30prj = GetVeg30Prj(stsimInputSheet, iteration, timestep)
 
             # Create cov_type, covden_sum, covden_win, rad_trnscf, snow_intcp, 
@@ -406,8 +405,19 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
                 climateFile, paramFile)
 
             Call_gsflow_nws(controlFile)
+
+            outputSheet = addRow(outputSheet,
+                data.frame(
+                    Iteration = iteration, Timestep = timestep, BasinID = basinName,
+                    PRMS_OutFile = WinFile(CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out")),
+                    PRMS_IC_OutFile = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out")),
+                    StatVarDat_OutFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
+                ))
+
+            stepSimulation()
         }
     }
 }
 
+saveDatasheet(scen, outputSheet, "PRMS_OutputFiles")
 endSimulation()

@@ -41,7 +41,7 @@ UnixFile <- function(fileName) {
 
 CreateRuntimeFileName <- function(scen, prefix, basinName, iteration, timestep, extension) {
 
-    outputFolder = ssimTempFolder(scen, "PRMS")
+    outputFolder = ssimEnvTempFolder("PRMS")
     outputFile = paste0(prefix, ".", basinName, ".it", iteration, ".ts", timestep, ".", extension)
     outputFile = file.path(outputFolder, outputFile)
 
@@ -279,13 +279,13 @@ maxIteration = GetSingleValue(runControlSheet, "MaximumIteration")
 minIteration = GetSingleValue(runControlSheet, "MinimumIteration")
 minTimestep = GetSingleValue(runControlSheet, "MinimumTimestep")
 maxTimestep = GetSingleValue(runControlSheet, "MaximumTimestep")
-inputFolder = ssimInputFolder(scen, "PRMS_PRMSInput")
+inputFolder = ssimEnvInputFolder(scen, "PRMS_PRMSInput")
 
 # Basin, Iteration, Timestep loop
 
 totalIterations = (maxIteration - minIteration + 1)
 totalTimesteps = (maxTimestep - minTimestep + 1)
-beginSimulation(totalIterations * totalTimesteps)
+ssimEnvBeginSimulation(totalIterations * totalTimesteps)
 
 for (basinRowIndex in 1:nrow(basinSheet)) {
 
@@ -320,7 +320,7 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
 
         for (timestep in minTimestep:maxTimestep) {
 
-            reportProgress(iteration, timestep)
+            ssimEnvReportProgress(iteration, timestep)
             Veg30prj = GetVeg30Prj(stsimInputSheet, iteration, timestep)
 
             # Create cov_type, covden_sum, covden_win, rad_trnscf, snow_intcp, 
@@ -414,10 +414,10 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
                     StatVarDat_OutFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
                 ))
 
-            stepSimulation()
+            ssimEnvStepSimulation()
         }
     }
 }
 
 saveDatasheet(scen, outputSheet, "PRMS_OutputFiles")
-endSimulation()
+ssimEnvEndSimulation()

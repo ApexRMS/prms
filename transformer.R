@@ -311,6 +311,50 @@ Call_gsflow_nws <- function(controlFile) {
     system(cmd, intern = T)
 }
 
+AddStatVarOutputRecords <- function(scen, basinName, iteration, timestep) {
+
+    StatVarFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
+
+    f1 = file(StatVarFile, "r")
+    NumVars = as.integer(readLines(f1, n = 1))
+    VarNames = list()
+    offset = 7
+
+    for (i in 1:NumVars) {
+        VarNames[i] = readLines(f1, n = 1)
+    }
+
+    recs <- list()
+
+    while (TRUE) {
+
+        line = readLines(f1, n = 1)
+
+        if (length(line) == 0) {
+            break
+        }
+
+        split = as.list(strsplit(line, " ")[[1]])
+        recdate = sprintf("%s-%s-%s", split[2], split[3], split[4])
+
+        for (i in 1:NumVars) {
+
+            n = VarNames[[i]]
+            v = split[[i + offset]]
+
+            data = data.frame(Iteration = iteration, Timestep = timestep,
+                RecordDate = recdate, VariableName = n, VariableValue = v)
+
+            recs[[length(recs) + 1]] <- data
+        }
+    }
+
+    close(f1)
+    out = do.call(rbind, recs)
+
+    return(out)
+}
+
 # Globals
 
 proj = rsyncrosim::project()
@@ -320,7 +364,8 @@ runControlSheet = GetDataSheet("PRMS_RunControl", scen)
 stsimInputSheet = GetDataSheet("PRMS_InputSTSimScenario", scen)
 climateInputSheet = GetDataSheet("PRMS_ClimateInput", scen)
 inputSheet = GetDataSheet("PRMS_PRMSInput", scen)
-outputSheet = datasheet(scen, name = "PRMS_OutputFiles")
+outputFilesSheet = datasheet(scen, name = "PRMS_OutputFiles")
+outputStatVarSheet = datasheet(scen, name = "PRMS_OutputStatVar")
 maxIteration = GetSingleValue(runControlSheet, "MaximumIteration")
 minIteration = GetSingleValue(runControlSheet, "MinimumIteration")
 minTimestep = GetSingleValue(runControlSheet, "MinimumTimestep")
@@ -452,7 +497,7 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
 
             Call_gsflow_nws(controlFile)
 
-            outputSheet = addRow(outputSheet,
+            outputFilesSheet = addRow(outputFilesSheet,
                 data.frame(
                     Iteration = iteration, Timestep = timestep, BasinID = basinName,
                     PRMS_OutFile = WinFile(CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out")),
@@ -460,10 +505,12 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
                     StatVarDat_OutFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
                 ))
 
+            outputStatVarSheet = AddStatVarOutputRecords(scen, basinName, iteration, timestep)
             envStepSimulation()
         }
     }
 }
 
-saveDatasheet(scen, outputSheet, "PRMS_OutputFiles")
+saveDatasheet(scen, outputFilesSheet, "PRMS_OutputFiles")
+saveDatasheet(scen, outputStatVarSheet, "PRMS_OutputStatVar")
 envEndSimulation()

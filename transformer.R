@@ -342,7 +342,8 @@ AddStatVarOutputRecords <- function(scen, basinName, iteration, timestep) {
             n = VarNames[[i]]
             v = split[[i + offset]]
 
-            data = data.frame(Iteration = iteration, Timestep = timestep,
+            data = data.frame(
+                Iteration = iteration, Timestep = timestep, BasinID = basinName,
                 RecordDate = recdate, VariableName = n, VariableValue = v)
 
             recs[[length(recs) + 1]] <- data

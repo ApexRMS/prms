@@ -197,6 +197,19 @@ CreateControlFile = function(
             line = WinFile(CreateRuntimeFileName(scen, "animation", basinName, iteration, timestep, "out"))
         } else if (line == "STSimPRMS_VarSaveFile") {
             line = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out"))
+        } else if (line == "init_vars_from_file" && timestep != minTimestep) {
+
+            writeLines(line, f2)
+            writeLines(readLines(f1, n = 2), f2)
+            readLines(f1, n = 1)
+            line = "1"
+
+        } else if (line == "var_init_file" && timestep != minTimestep) {
+
+            writeLines(line, f2)
+            writeLines(readLines(f1, n = 2), f2)
+            readLines(f1, n = 1)
+            line = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep-1, "out"))
         }
 
         writeLines(line, f2)

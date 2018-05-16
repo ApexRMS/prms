@@ -28,7 +28,7 @@ GetFile <- function(ds, name) {
 }
 
 Enquote <- function(value) {
-    return (paste0('\"', value, '\"'))
+    return(paste0('\"', value, '\"'))
 }
 
 WinFile <- function(fileName) {
@@ -36,7 +36,7 @@ WinFile <- function(fileName) {
 }
 
 UnixFile <- function(fileName) {
-    return(gsub("\\", "/",  fileName, fixed = T))
+    return(gsub("\\", "/", fileName, fixed = T))
 }
 
 CreateRuntimeFileName <- function(scen, prefix, basinName, iteration, timestep, extension) {
@@ -209,7 +209,7 @@ CreateControlFile = function(
             writeLines(line, f2)
             writeLines(readLines(f1, n = 2), f2)
             readLines(f1, n = 1)
-            line = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep-1, "out"))
+            line = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep - 1, "out"))
         }
 
         writeLines(line, f2)
@@ -324,7 +324,7 @@ Call_gsflow_nws <- function(controlFile) {
     system(cmd, intern = T)
 }
 
-AddStatVarOutputRecords <- function(scen, basinName, iteration, timestep) {
+GetStatVarRecords <- function(scen, basinName, iteration, timestep) {
 
     StatVarFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
 
@@ -337,7 +337,10 @@ AddStatVarOutputRecords <- function(scen, basinName, iteration, timestep) {
         VarNames[i] = readLines(f1, n = 1)
     }
 
-    recs <- list()
+    df <- data.frame(
+      Iteration = integer(), Timestep = integer(), BasinID = integer(),
+      RecordDate = character(), VariableName = character(), VariableValue = numeric(),
+      stringsAsFactors = FALSE)
 
     while (TRUE) {
 
@@ -355,18 +358,16 @@ AddStatVarOutputRecords <- function(scen, basinName, iteration, timestep) {
             n = VarNames[[i]]
             v = split[[i + offset]]
 
-            data = data.frame(
+            data = list(
                 Iteration = iteration, Timestep = timestep, BasinID = basinName,
                 RecordDate = recdate, VariableName = n, VariableValue = v)
 
-            recs[[length(recs) + 1]] <- data
+            df[nrow(df) + 1,] <- data
         }
     }
 
     close(f1)
-    out = do.call(rbind, recs)
-
-    return(out)
+    return(df)
 }
 
 # Globals
@@ -385,47 +386,45 @@ minIteration = GetSingleValue(runControlSheet, "MinimumIteration")
 minTimestep = GetSingleValue(runControlSheet, "MinimumTimestep")
 maxTimestep = GetSingleValue(runControlSheet, "MaximumTimestep")
 inputFolder = envInputFolder(scen, "PRMS_PRMSInput")
-
-# Basin, Iteration, Timestep loop
-
 totalIterations = (maxIteration - minIteration + 1)
 totalTimesteps = (maxTimestep - minTimestep + 1)
+
+# Iteration, Timestep, Basin loop
+
 envBeginSimulation(totalIterations * totalTimesteps)
 
-for (basinRowIndex in 1:nrow(basinSheet)) {
+for (iteration in minIteration:maxIteration) {
 
-    basinName = basinSheet[basinRowIndex, "Name"]
-    basinCRS = basinSheet[basinRowIndex, "CRS"]
+    for (timestep in minTimestep:maxTimestep) {
 
-    inputRow = GetRowByBasin(inputSheet, basinName)
+        envReportProgress(iteration, timestep)
 
-    if (is.null(inputRow)) {
-        next
-    }
+        for (basinRowIndex in 1:nrow(basinSheet)) {
 
-    templateControlFile = GetSingleValue(inputRow, "TemplateControlFile")
-    templateParameterFile = GetSingleValue(inputRow, "TemplateParameterFile")
-    initialHRUValueFile = GetSingleValue(inputRow, "InitialHRUValueFile")
-    centroidHRUFile = GetSingleValue(inputRow, "HRUCentroidFile")
-    attributePRMSLookupFile = GetSingleValue(inputRow, "AttributePRMSLookupFile")
-    basinPt <- read.table(centroidHRUFile, header = T)
-    vegtype_prms <- read.csv(file = attributePRMSLookupFile)
-    basin_prms_orig <- read.csv(file = initialHRUValueFile)
-    nHRU = GetNHRUValue(templateParameterFile)
+            basinName = basinSheet[basinRowIndex, "Name"]
+            inputRow = GetRowByBasin(inputSheet, basinName)
 
-    for (iteration in minIteration:maxIteration) {
+            if (is.null(inputRow)) {
+                next
+            }
 
-        climateRow = GetRowByBasinAndIteration(climateInputSheet, basinName, iteration)
+            climateRow = GetRowByBasinAndIteration(climateInputSheet, basinName, iteration)
 
-        if (is.null(climateRow)) {
-            next
-        }
+            if (is.null(climateRow)) {
+                next
+            }
 
-        climateFile = GetSingleValue(climateRow, "InputClimateFile")
-
-        for (timestep in minTimestep:maxTimestep) {
-
-            envReportProgress(iteration, timestep)
+            basinCRS = basinSheet[basinRowIndex, "CRS"]
+            climateFile = GetSingleValue(climateRow, "InputClimateFile")
+            templateControlFile = GetSingleValue(inputRow, "TemplateControlFile")
+            templateParameterFile = GetSingleValue(inputRow, "TemplateParameterFile")
+            initialHRUValueFile = GetSingleValue(inputRow, "InitialHRUValueFile")
+            centroidHRUFile = GetSingleValue(inputRow, "HRUCentroidFile")
+            attributePRMSLookupFile = GetSingleValue(inputRow, "AttributePRMSLookupFile")
+            basinPt <- read.table(centroidHRUFile, header = T)
+            vegtype_prms <- read.csv(file = attributePRMSLookupFile)
+            basin_prms_orig <- read.csv(file = initialHRUValueFile)
+            nHRU = GetNHRUValue(templateParameterFile)
             Veg30prj = GetVeg30Prj(stsimInputSheet, iteration, timestep)
 
             # Create cov_type, covden_sum, covden_win, rad_trnscf, snow_intcp, 
@@ -444,9 +443,9 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
             # Aggregation for cov_type using mode to aggregate to 300 m
 
             cov_type300 <- aggregate(cov_type, fact = 10, fun = 'modal')
-            
+
             # Aggregation for covden_sum, covden_win, radtrnscf, snow_intcp, srain_intcp, wrain_intcp using mean
-            
+
             covden_sum300 <- aggregate(covden_sum, fact = 10, fun = 'mean')
             covden_win300 <- aggregate(covden_win, fact = 10, fun = 'mean')
             radtrnscf300 <- aggregate(radtrnscf, fact = 10, fun = 'mean')
@@ -455,7 +454,7 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
             mwrain_intcp300 <- aggregate(mwrain_intcp, fact = 10, fun = 'mean')
             ltsrain_intcp300 <- aggregate(ltsrain_intcp, fact = 10, fun = 'mean')
             ltwrain_intcp300 <- aggregate(ltwrain_intcp, fact = 10, fun = 'mean')
-            
+
             # Extract the values in the raster layers to a dataframe
 
             cov_type_extract <- extract(cov_type300, basinPt, method = 'simple', cellnumbers = T, df = T)
@@ -467,7 +466,7 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
             mwrain_intcp_extract <- extract(mwrain_intcp300, basinPt, method = 'simple', cellnumbers = T, df = T)
 
             # Create placeholder matrices for parameter
-            
+
             cov_type_basin <- rep(0, nHRU)
             covden_sum_basin <- rep(0, nHRU)
             covden_win_basin <- rep(0, nHRU)
@@ -477,7 +476,7 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
             wrain_intcp_basin <- rep(0, nHRU)
 
             # Replace values in the matrices with original PRMS values
-            
+
             for (i in 1:nHRU) { cov_type_basin[i] <- basin_prms_orig[i, 4] }
             for (i in 1:nHRU) { covden_sum_basin[i] <- basin_prms_orig[i, 5] }
             for (i in 1:nHRU) { covden_win_basin[i] <- basin_prms_orig[i, 6] }
@@ -502,26 +501,29 @@ for (basinRowIndex in 1:nrow(basinSheet)) {
             }
 
             paramFile = CreateParamFile(
-                scen, templateParameterFile, basinName, iteration, timestep, nHRU,
-                cov_type_basin, covden_sum_basin, covden_win_basin, radtrnscf_basin, snow_intcp_basin, srain_intcp_basin, wrain_intcp_basin)
+                    scen, templateParameterFile, basinName, iteration, timestep, nHRU,
+                    cov_type_basin, covden_sum_basin, covden_win_basin, radtrnscf_basin,
+                    snow_intcp_basin, srain_intcp_basin, wrain_intcp_basin)
 
             controlFile = CreateControlFile(
-                scen, templateControlFile, basinName, iteration, timestep,
-                climateFile, paramFile)
+                    scen, templateControlFile, basinName, iteration, timestep,
+                    climateFile, paramFile)
 
             Call_gsflow_nws(controlFile)
 
             outputFilesSheet = addRow(outputFilesSheet,
-                data.frame(
-                    Iteration = iteration, Timestep = timestep, BasinID = basinName,
-                    PRMS_OutFile = WinFile(CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out")),
-                    PRMS_IC_OutFile = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out")),
-                    StatVarDat_OutFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
-                ))
+                    data.frame(
+                        Iteration = iteration, Timestep = timestep, BasinID = basinName,
+                        PRMS_OutFile = WinFile(CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out")),
+                        PRMS_IC_OutFile = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out")),
+                        StatVarDat_OutFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
+                    ))
 
-            outputStatVarSheet = AddStatVarOutputRecords(scen, basinName, iteration, timestep)
-            envStepSimulation()
+            StatVarRecs = GetStatVarRecords(scen, basinName, iteration, timestep)
+            outputStatVarSheet = merge(outputStatVarSheet, StatVarRecs, all = T)
         }
+
+        envStepSimulation()
     }
 }
 

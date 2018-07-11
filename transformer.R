@@ -178,9 +178,9 @@ CreateControlFile = function(
         }
 
         if (line == "STSimPRMS_StartTimestep") {
-            line = as.character(timestep - 1 + 1986)
+            line = as.character(timestep - 1 + 2017)
         } else if (line == "STSimPRMS_EndTimestep") {
-            line = as.character(timestep + 1986)
+            line = as.character(timestep + 2017)
         } else if (line == "STSimPRMS_InputClimateFile") {
             line = climateFile
         } else if (line == "STSimPRMS_InputParameterFile") {

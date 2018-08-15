@@ -1,4 +1,4 @@
-# STSimPRMS:A SyncroSim Module for post processing ST - Sim outputs with PRMS.
+# PRMS:A SyncroSim Module for running PRMS simulations on ST-Sim outputs.
 # Copyright © 2007 - 2018 Apex Resource Management Solution Ltd.(ApexRMS) . All rights reserved.
 
 library(rgdal)

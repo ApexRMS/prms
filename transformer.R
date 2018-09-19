@@ -210,6 +210,13 @@ CreateControlFile = function(
             writeLines(readLines(f1, n = 2), f2)
             readLines(f1, n = 1)
             line = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep - 1, "out"))
+            
+            # Delete the prms_ic file from two timesteps ago if it exists
+            TwoTimestespAgo = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep - 2, "out"))
+            
+            if (file.exists(TwoTimestespAgo)) {
+                file.remove(TwoTimestespAgo)
+            } 
         }
 
         writeLines(line, f2)

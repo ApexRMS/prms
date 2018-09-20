@@ -516,12 +516,18 @@ for (iteration in minIteration:maxIteration) {
                     data.frame(
                         Iteration = iteration, Timestep = timestep, BasinID = basinName,
                         PRMS_OutFile = WinFile(CreateRuntimeFileName(scen, "prms", basinName, iteration, timestep, "out")),
-                        PRMS_IC_OutFile = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep, "out")),
                         StatVarDat_OutFile = WinFile(CreateRuntimeFileName(scen, "statvar", basinName, iteration, timestep, "dat"))
                     ))
 
             StatVarRecs = GetStatVarRecords(scen, basinName, iteration, timestep)
             outputStatVarSheet = merge(outputStatVarSheet, StatVarRecs, all = T)
+
+            # To save disk space, delete the prms_ic file from two timesteps ago if it exists
+            TwoTimestepsAgo = WinFile(CreateRuntimeFileName(scen, "prms_ic", basinName, iteration, timestep - 2, "out"))
+
+            if (file.exists(TwoTimestepsAgo)) {
+                file.remove(TwoTimestepsAgo)
+            }
         }
 
         envStepSimulation()

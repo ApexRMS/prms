@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SyncroSim.STSimPRMS")]
-[assembly: AssemblyDescription("ST-Sim PRMS Module")]
+[assembly: AssemblyDescription("ST-Sim PRMS Package")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("ApexRMS")]
 [assembly: AssemblyProduct("SyncroSim.STSimPRMS")]

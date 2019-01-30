@@ -44,7 +44,7 @@ namespace SyncroSim.STSimPRMS
             d.Title = "Choose ST-Sim Library";
             d.Filter = "ST-Sim Library (*.ssim)|*.ssim";
 
-            if (d.ShowDialog() == DialogResult.OK)
+            if (d.ShowDialog(this) == DialogResult.OK)
             {
                 this.SetData("STSimLibraryFile", d.FileName);
             }

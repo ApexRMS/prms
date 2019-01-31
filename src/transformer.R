@@ -1,5 +1,5 @@
 # PRMS:A SyncroSim Module for running PRMS simulations on ST-Sim outputs.
-# Copyright © 2007 - 2018 Apex Resource Management Solution Ltd.(ApexRMS) . All rights reserved.
+# Copyright © 2007 - 2019 Apex Resource Management Solution Ltd.(ApexRMS) . All rights reserved.
 
 library(rgdal)
 library(raster)

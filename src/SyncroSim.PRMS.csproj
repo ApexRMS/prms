@@ -7,8 +7,8 @@
     <ProjectGuid>{AED91E1A-AD68-45B9-9D12-D54F490AF39E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SyncroSim.STSimPRMS</RootNamespace>
-    <AssemblyName>SyncroSim.STSimPRMS</AssemblyName>
+    <RootNamespace>SyncroSim.PRMS</RootNamespace>
+    <AssemblyName>SyncroSim.PRMS</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

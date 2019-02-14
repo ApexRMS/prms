@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SyncroSim.STSimPRMS")]
-[assembly: AssemblyDescription("ST-Sim PRMS Package")]
+[assembly: AssemblyTitle("SyncroSim.PRMS")]
+[assembly: AssemblyDescription("PRMS Package")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("ApexRMS")]
-[assembly: AssemblyProduct("SyncroSim.STSimPRMS")]
+[assembly: AssemblyProduct("SyncroSim.PRMS")]
 [assembly: AssemblyCopyright("Copyright © 2007-2019 Apex Resource Management Solution Ltd. (ApexRMS). All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

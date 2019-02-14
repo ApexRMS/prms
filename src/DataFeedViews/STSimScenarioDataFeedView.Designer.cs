@@ -1,4 +1,4 @@
-﻿namespace SyncroSim.STSimPRMS
+﻿namespace SyncroSim.PRMS
 {
     partial class STSimScenarioDataFeedView
     {
